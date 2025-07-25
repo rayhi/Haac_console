@@ -44,7 +44,7 @@ const customerRows: GridRowsProp = [
 ];
 
 function exportToCSV<T extends Record<string, unknown>>(data: T[], filename: string) {
-  const replacer = (key: string, value: unknown) => (value === null ? '' : value);
+  const replacer = (_key: string, value: unknown) => (value === null ? '' : value);
   const header = Object.keys(data[0]);
   const csv = [
     header.join(','),

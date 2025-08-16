@@ -148,6 +148,96 @@ const createTables = async (): Promise<void> => {
       FOREIGN KEY (policy_id) REFERENCES policies(id) ON DELETE CASCADE
     )`,
 
+    // Service providers table
+    `CREATE TABLE IF NOT EXISTS service_providers (
+      id INT PRIMARY KEY AUTO_INCREMENT,
+      name VARCHAR(255) NOT NULL,
+      type ENUM('hospital', 'clinic', 'pharmacy', 'diagnostic_center', 'specialist', 'repair_shop', 'contractor', 'towing_service', 'rental_company') NOT NULL,
+      category ENUM('health', 'auto', 'property', 'general') NOT NULL,
+      license_number VARCHAR(100),
+      tax_id VARCHAR(50),
+      contact_person VARCHAR(255),
+      email VARCHAR(255),
+      phone VARCHAR(20),
+      address TEXT,
+      city VARCHAR(100),
+      state VARCHAR(100),
+      zip_code VARCHAR(20),
+      country VARCHAR(100) DEFAULT 'US',
+      website VARCHAR(255),
+      specialties JSON,
+      certifications JSON,
+      network_status ENUM('in_network', 'out_of_network', 'pending', 'suspended') DEFAULT 'pending',
+      contract_start_date DATE,
+      contract_end_date DATE,
+      reimbursement_rate DECIMAL(5,2),
+      quality_rating DECIMAL(3,2),
+      is_active BOOLEAN DEFAULT TRUE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    )`,
+
+    // Provider networks table (for managing different networks)
+    `CREATE TABLE IF NOT EXISTS provider_networks (
+      id INT PRIMARY KEY AUTO_INCREMENT,
+      name VARCHAR(255) NOT NULL,
+      type ENUM('health', 'auto', 'property', 'general') NOT NULL,
+      description TEXT,
+      coverage_area JSON,
+      is_active BOOLEAN DEFAULT TRUE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    )`,
+
+    // Provider network associations
+    `CREATE TABLE IF NOT EXISTS provider_network_associations (
+      id INT PRIMARY KEY AUTO_INCREMENT,
+      provider_id INT NOT NULL,
+      network_id INT NOT NULL,
+      effective_date DATE NOT NULL,
+      termination_date DATE,
+      reimbursement_rate DECIMAL(5,2),
+      is_active BOOLEAN DEFAULT TRUE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (provider_id) REFERENCES service_providers(id) ON DELETE CASCADE,
+      FOREIGN KEY (network_id) REFERENCES provider_networks(id) ON DELETE CASCADE,
+      UNIQUE KEY unique_provider_network (provider_id, network_id)
+    )`,
+
+    // Provider services offered
+    `CREATE TABLE IF NOT EXISTS provider_services (
+      id INT PRIMARY KEY AUTO_INCREMENT,
+      provider_id INT NOT NULL,
+      service_code VARCHAR(50) NOT NULL,
+      service_name VARCHAR(255) NOT NULL,
+      service_category VARCHAR(100),
+      standard_fee DECIMAL(10,2),
+      negotiated_fee DECIMAL(10,2),
+      is_covered BOOLEAN DEFAULT TRUE,
+      requires_authorization BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (provider_id) REFERENCES service_providers(id) ON DELETE CASCADE
+    )`,
+
+    // Claims-provider relationships
+    `CREATE TABLE IF NOT EXISTS claim_providers (
+      id INT PRIMARY KEY AUTO_INCREMENT,
+      claim_id INT NOT NULL,
+      provider_id INT NOT NULL,
+      service_date DATE NOT NULL,
+      services_provided JSON,
+      billed_amount DECIMAL(15,2) NOT NULL,
+      approved_amount DECIMAL(15,2),
+      payment_status ENUM('pending', 'approved', 'paid', 'denied') DEFAULT 'pending',
+      payment_date DATE,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (claim_id) REFERENCES claims(id) ON DELETE CASCADE,
+      FOREIGN KEY (provider_id) REFERENCES service_providers(id)
+    )`,
+
     // Audit log table
     `CREATE TABLE IF NOT EXISTS audit_logs (
       id INT PRIMARY KEY AUTO_INCREMENT,

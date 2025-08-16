@@ -143,13 +143,98 @@ export interface PaginatedResponse<T> {
   };
 }
 
+export interface ServiceProvider {
+  id?: number;
+  name: string;
+  type: 'hospital' | 'clinic' | 'pharmacy' | 'diagnostic_center' | 'specialist' | 'repair_shop' | 'contractor' | 'towing_service' | 'rental_company';
+  category: 'health' | 'auto' | 'property' | 'general';
+  license_number?: string;
+  tax_id?: string;
+  contact_person?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip_code?: string;
+  country?: string;
+  website?: string;
+  specialties?: any;
+  certifications?: any;
+  network_status?: 'in_network' | 'out_of_network' | 'pending' | 'suspended';
+  contract_start_date?: Date;
+  contract_end_date?: Date;
+  reimbursement_rate?: number;
+  quality_rating?: number;
+  is_active?: boolean;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
+export interface ProviderNetwork {
+  id?: number;
+  name: string;
+  type: 'health' | 'auto' | 'property' | 'general';
+  description?: string;
+  coverage_area?: any;
+  is_active?: boolean;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
+export interface ProviderNetworkAssociation {
+  id?: number;
+  provider_id: number;
+  network_id: number;
+  effective_date: Date;
+  termination_date?: Date;
+  reimbursement_rate?: number;
+  is_active?: boolean;
+  created_at?: Date;
+  provider?: ServiceProvider;
+  network?: ProviderNetwork;
+}
+
+export interface ProviderService {
+  id?: number;
+  provider_id: number;
+  service_code: string;
+  service_name: string;
+  service_category?: string;
+  standard_fee?: number;
+  negotiated_fee?: number;
+  is_covered?: boolean;
+  requires_authorization?: boolean;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
+export interface ClaimProvider {
+  id?: number;
+  claim_id: number;
+  provider_id: number;
+  service_date: Date;
+  services_provided?: any;
+  billed_amount: number;
+  approved_amount?: number;
+  payment_status?: 'pending' | 'approved' | 'paid' | 'denied';
+  payment_date?: Date;
+  notes?: string;
+  created_at?: Date;
+  updated_at?: Date;
+  provider?: ServiceProvider;
+  claim?: Claim;
+}
+
 export interface DashboardStats {
   totalPolicies: number;
   activePolicies: number;
   totalClaims: number;
   pendingClaims: number;
   totalCustomers: number;
+  totalServiceProviders: number;
   totalPremiumCollected: number;
   recentPolicies: Policy[];
   recentClaims: Claim[];
+  recentProviders: ServiceProvider[];
 }

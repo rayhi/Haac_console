@@ -8,15 +8,15 @@ import FormControl from "@mui/material/FormControl";
 import Link from "@mui/material/Link";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import Alert from "@mui/material/Alert";
 import AppTheme from "../../../shared-theme/AppTheme";
 import bgImage from "../../../assets/Group 501.png"
-// import api from "../../../hooks/api";
 import logo from "../../../assets/Logo.png";
 
 import Grid from "@mui/material/Grid2";
 import CustomButton from "../../components/CustomButton";
 import { useNavigate } from "react-router-dom";
-// import { isAuthenticated } from "../../../hooks/auth";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export default function Login(props: { disableCustomTheme?: boolean }) {
   const [emailError, setEmailError] = useState(false);
@@ -25,14 +25,10 @@ export default function Login(props: { disableCustomTheme?: boolean }) {
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-
-  //   useEffect(() => {
-  //     const authStatus = isAuthenticated();
-  //     if (authStatus.valid) {
-  //       Navigate("/dashboard"); // Redirect to dashboard if already logged in
-  //     }
-  //   }, [Navigate]);
+  const { login } = useAuth();
 
   // const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
   //   event.preventDefault();
@@ -61,9 +57,29 @@ export default function Login(props: { disableCustomTheme?: boolean }) {
   //     }
   //   }
   // };
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    navigate("/dashboard");
+    
+    // Reset errors
+    setError("");
+    setEmailError(false);
+    setPasswordError(false);
+    setEmailErrorMessage("");
+    setPasswordErrorMessage("");
+    
+    // Validate inputs before sending the request
+    if (!validateInputs()) return;
+    
+    try {
+      setIsLoading(true);
+      await login({ email, password });
+      navigate("/dashboard");
+    } catch (error: any) {
+      console.error("Login failed:", error);
+      setError(error.message || "Login failed. Please check your credentials.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const validateInputs = () => {
@@ -183,6 +199,11 @@ export default function Login(props: { disableCustomTheme?: boolean }) {
                 gap: 2,
               }}
             >
+              {error && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {error}
+                </Alert>
+              )}
               <FormControl fullWidth>
                 <FormLabel htmlFor="email">Email</FormLabel>
                 <TextField
@@ -235,7 +256,9 @@ export default function Login(props: { disableCustomTheme?: boolean }) {
                 label="Remember me"
               />
 
-              <CustomButton type="submit">Sign in</CustomButton>
+              <CustomButton type="submit" disabled={isLoading}>
+                {isLoading ? "Signing in..." : "Sign in"}
+              </CustomButton>
             </Box>
             {/* </Card> */}
           </Box>
